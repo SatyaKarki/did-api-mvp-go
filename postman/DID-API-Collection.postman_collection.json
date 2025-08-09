@@ -1,0 +1,479 @@
+{
+	"info": {
+		"_postman_id": "12345678-1234-1234-1234-123456789abc",
+		"name": "DID API MVP Collection",
+		"description": "Complete API collection for testing DID (Decentralized Identifier) operations including creation, resolution, key management, signing, and verification.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12345678"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response is pong\", function () {",
+							"    pm.expect(pm.response.text()).to.eql(\"pong\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/ping",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"ping"
+					]
+				},
+				"description": "Health check endpoint to verify the API server is running."
+			},
+			"response": []
+		},
+		{
+			"name": "Create DID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has DID properties\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('did');",
+							"    pm.expect(jsonData).to.have.property('publicKey');",
+							"    pm.expect(jsonData).to.have.property('privateKey');",
+							"    pm.expect(jsonData).to.have.property('document');",
+							"});",
+							"",
+							"pm.test(\"DID format is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.did).to.match(/^did:key:/);",
+							"});",
+							"",
+							"// Store values for subsequent requests",
+							"var responseJson = pm.response.json();",
+							"pm.collectionVariables.set(\"did_id\", responseJson.did);",
+							"pm.collectionVariables.set(\"public_key\", responseJson.publicKey);",
+							"pm.collectionVariables.set(\"private_key\", responseJson.privateKey);",
+							"",
+							"console.log(\"Created DID: \" + responseJson.did);",
+							"console.log(\"Public Key: \" + responseJson.publicKey);",
+							"console.log(\"Private Key: \" + responseJson.privateKey);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/did/create",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"did",
+						"create"
+					]
+				},
+				"description": "Creates a new DID with Ed25519 key pair and returns the DID document along with public/private keys."
+			},
+			"response": []
+		},
+		{
+			"name": "Resolve DID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has DID document structure\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('@context');",
+							"    pm.expect(jsonData).to.have.property('id');",
+							"    pm.expect(jsonData).to.have.property('verificationMethod');",
+							"    pm.expect(jsonData).to.have.property('authentication');",
+							"});",
+							"",
+							"pm.test(\"DID ID matches request\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    var expectedDid = pm.collectionVariables.get(\"did_id\");",
+							"    pm.expect(jsonData.id).to.eql(expectedDid);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Check if we have a DID to resolve",
+							"var didId = pm.collectionVariables.get(\"did_id\");",
+							"if (!didId) {",
+							"    console.log(\"No DID found. Please run 'Create DID' request first.\");",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/did/resolve/{{did_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"did",
+						"resolve",
+						"{{did_id}}"
+					]
+				},
+				"description": "Resolves a DID and returns its document. Requires a valid DID ID from the Create DID request."
+			},
+			"response": []
+		},
+		{
+			"name": "Add Key to DID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"DID document updated with new key\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.verificationMethod).to.be.an('array');",
+							"    pm.expect(jsonData.verificationMethod.length).to.be.at.least(2);",
+							"});",
+							"",
+							"pm.test(\"New key added to authentication array\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.authentication).to.be.an('array');",
+							"    pm.expect(jsonData.authentication.length).to.be.at.least(2);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generate a sample public key for testing",
+							"// In real scenario, this would be a properly generated Ed25519 public key",
+							"pm.collectionVariables.set(\"sample_public_key\", \"2J9W8Dw3K7vR5mQ1pF4jG9hY6nT8cX2sA5eL3bZ9uV1k\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"publicKey\": \"{{sample_public_key}}\",\n  \"type\": \"Ed25519VerificationKey2020\",\n  \"keyId\": \"keys-2\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/did/add-key/{{did_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"did",
+						"add-key",
+						"{{did_id}}"
+					]
+				},
+				"description": "Adds a new verification key to an existing DID document."
+			},
+			"response": []
+		},
+		{
+			"name": "Sign Message",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response contains message and signature\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('message');",
+							"    pm.expect(jsonData).to.have.property('signature');",
+							"});",
+							"",
+							"pm.test(\"Message matches input\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.eql(\"Hello DID World - Test Message\");",
+							"});",
+							"",
+							"// Store signature for verification test",
+							"var responseJson = pm.response.json();",
+							"pm.collectionVariables.set(\"test_signature\", responseJson.signature);",
+							"pm.collectionVariables.set(\"test_message\", responseJson.message);",
+							"",
+							"console.log(\"Message signed successfully\");",
+							"console.log(\"Signature: \" + responseJson.signature);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Check if we have the required keys",
+							"var privateKey = pm.collectionVariables.get(\"private_key\");",
+							"if (!privateKey) {",
+							"    console.log(\"No private key found. Please run 'Create DID' request first.\");",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "message",
+							"value": "Hello DID World - Test Message",
+							"type": "text"
+						},
+						{
+							"key": "privateKey",
+							"value": "{{private_key}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/did/sign",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"did",
+						"sign"
+					]
+				},
+				"description": "Signs a message using the private key from the created DID."
+			},
+			"response": []
+		},
+		{
+			"name": "Verify Message",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response contains verification result\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('message');",
+							"    pm.expect(jsonData).to.have.property('signature');",
+							"    pm.expect(jsonData).to.have.property('valid');",
+							"});",
+							"",
+							"pm.test(\"Signature is valid\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.valid).to.be.true;",
+							"});",
+							"",
+							"pm.test(\"Message matches original\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    var originalMessage = pm.collectionVariables.get(\"test_message\");",
+							"    pm.expect(jsonData.message).to.eql(originalMessage);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Check if we have the required data from previous requests",
+							"var signature = pm.collectionVariables.get(\"test_signature\");",
+							"var publicKey = pm.collectionVariables.get(\"public_key\");",
+							"var message = pm.collectionVariables.get(\"test_message\");",
+							"",
+							"if (!signature || !publicKey || !message) {",
+							"    console.log(\"Missing required data. Please run previous requests first:\");",
+							"    console.log(\"1. Create DID\");",
+							"    console.log(\"2. Sign Message\");",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "message",
+							"value": "{{test_message}}",
+							"type": "text"
+						},
+						{
+							"key": "signature",
+							"value": "{{test_signature}}",
+							"type": "text"
+						},
+						{
+							"key": "publicKey",
+							"value": "{{public_key}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/did/verify",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"did",
+						"verify"
+					]
+				},
+				"description": "Verifies a message signature using the public key from the created DID."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global pre-request script",
+					"console.log(\"Executing request to: \" + pm.request.url);"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script",
+					"pm.test(\"Response time is less than 5000ms\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "did_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "public_key",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "private_key",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "test_signature",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "test_message",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "sample_public_key",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
