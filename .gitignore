@@ -1,0 +1,25 @@
+# Go backend
+/go.sum
+/go.mod
+*.exe
+*.out
+*.test
+*.log
+logs/
+.env
+
+# Node/React frontend
+/frontend-did/node_modules/
+/frontend-did/dist/
+/frontend-did/.env
+/frontend-did/.DS_Store
+
+# OS/Editor
+*.swp
+*.swo
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

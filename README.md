@@ -12,9 +12,6 @@ A RESTful API for Decentralized Identifiers (DIDs) built with Go, implementing W
 - **In-Memory Storage**: Fast, lightweight storage for development and testing
 
 ## 📁 Project Structure
-
-```
-did-api-mvp/
 ├── cmd/                    # CLI commands
 │   ├── root.go            # Root command configuration
 │   └── serve.go           # Server start command
@@ -49,10 +46,13 @@ did-api-mvp/
 ├── setup-env.ps1          # Environment setup script
 └── load-env.ps1           # Environment loading script
 ```
+## 📁 Project Structure
 
+```
 ## 🛠️ Prerequisites
 
-- **Go 1.24.2 or higher**
+- **Go 1.24.2 or higher** (for backend)
+- **Node.js (v18+) & npm** (for frontend)
 - **Git** for version control
 - **PowerShell** (for Windows environment scripts)
 
@@ -83,20 +83,33 @@ did-api-mvp/
 
 ## 🚦 Running the Application
 
-### Start the API Server
+### 1. Start the Go Backend
 
 ```bash
-# Method 1: Using Go run
+# In the project root
 go run main.go serve
-
-# Method 2: Build and run
+# Or build and run
 go build -o did-api
 ./did-api serve
 ```
+The backend server will start on `http://localhost:8080`
 
-The server will start on `http://localhost:8080`
+### 2. Start the ReactJS Frontend
 
-### Verify Server is Running
+```bash
+# In a new terminal, go to the frontend folder
+cd frontend-did
+npm install
+npm run dev
+```
+The frontend will start on `http://localhost:3000` and connect to the backend automatically.
+
+### 3. Access the Application
+
+- **Backend API:** [http://localhost:8080](http://localhost:8080)
+- **Frontend UI:** [http://localhost:3000](http://localhost:3000)
+
+### 4. Verify Server is Running
 
 ```bash
 curl http://localhost:8080/ping
@@ -284,7 +297,11 @@ curl -X POST http://localhost:8080/v1/api/did/verify \
   -d "publicKey=$PUBLIC_KEY"
 ```
 
-### Testing with Postman
+#### 3. Test with ReactJS Frontend
+
+Open [http://localhost:3000](http://localhost:3000) in your browser and use the modern UI to interact with all API endpoints visually.
+
+#### 4. Testing with Postman
 
 1. **Import Collection**: Create a new Postman collection with the above endpoints
 2. **Environment Variables**: Set `{{base_url}}` to `http://localhost:8080`
@@ -294,7 +311,7 @@ curl -X POST http://localhost:8080/v1/api/did/verify \
    - Sign message using saved `privateKey`
    - Verify signature using saved `publicKey` and signature
 
-### Automated Testing
+#### 5. Automated Testing
 
 Create test files in Go:
 
