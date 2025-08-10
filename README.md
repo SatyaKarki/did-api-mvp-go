@@ -40,6 +40,11 @@ A RESTful API for Decentralized Identifiers (DIDs) built with Go, implementing W
 ├── utils/                 # Utility functions
 │   ├── errorutil/         # Error handling utilities
 │   └── msgutil/           # Message utilities
+├── frontend-did/          # ReactJS frontend application
+│   ├── src/               # React source code
+│   ├── package.json       # Frontend dependencies
+│   ├── vite.config.js     # Vite configuration
+│   └── ... 
 ├── go.mod                 # Go module definition
 ├── go.sum                 # Dependency checksums
 ├── main.go                # Application entry point
