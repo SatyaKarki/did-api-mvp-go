@@ -11,6 +11,39 @@ A RESTful API for Decentralized Identifiers (DIDs) built with Go, implementing W
 - **W3C Compliant**: Follows W3C DID specification standards
 - **In-Memory Storage**: Fast, lightweight storage for development and testing
 
+## Why We Use DIDs
+
+| Reason | Explanation |
+|--------|-------------|
+| **Self-Sovereign Identity (SSI)** | DIDs allow individuals or entities to own and control their digital identity without a central authority. |
+| **Privacy & Security** | No need to share sensitive data with intermediaries — you prove identity via cryptographic signatures. |
+| **Interoperability** | DIDs follow the **W3C specification**, meaning they can work across different platforms, blockchains, and apps. |
+| **Trust Without Centralization** | Blockchain or distributed systems ensure tamper-proof verification without a single point of failure. |
+| **Portability** | You can carry your DID anywhere; it’s not tied to one company or platform. |
+
+---
+
+## Applications of DIDs
+
+Your **DID API MVP** can be used in:
+
+### 🔹 Authentication Systems
+Replace usernames/passwords with DID-based cryptographic login.
+
+### 🔹 Digital Credential Issuance
+Universities, governments, or companies issue verifiable credentials tied to DIDs.
+
+### 🔹 Secure Messaging
+Sign messages so recipients can verify authenticity without intermediaries.
+
+### 🔹 IoT Device Identity
+Each IoT device gets a DID to prove authenticity and prevent spoofing.
+
+### 🔹 Healthcare
+Patients control medical records and share them securely with providers.
+
+---
+
 ## 📁 Project Structure
 
 ```
