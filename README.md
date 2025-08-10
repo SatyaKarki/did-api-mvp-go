@@ -12,6 +12,7 @@ A RESTful API for Decentralized Identifiers (DIDs) built with Go, implementing W
 - **In-Memory Storage**: Fast, lightweight storage for development and testing
 
 ## 📁 Project Structure
+```
 ├── cmd/                    # CLI commands
 │   ├── root.go            # Root command configuration
 │   └── serve.go           # Server start command
